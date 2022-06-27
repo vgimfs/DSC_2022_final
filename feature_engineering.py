@@ -10,10 +10,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
-def feature_engineering(df):
+def feature_engineering(df, normalize = True):
     '''given the cmg data, we want to return '''
     
-    df = df.apply(lambda x: x.fillna(value=df['filingDetailsOfferingPrice']))
+    df = df.apply(lambda x: x.fillna(value=df['offeringPrice']))
     
     # how many offerings that have a change from the previous bank
     temp = df.filter(items = ['offeringId', 'issuerCusip', 'offeringPricingDate', 'leftLeadFirmName']).sort_values(by = ['issuerCusip', 'offeringPricingDate'])
@@ -22,9 +22,11 @@ def feature_engineering(df):
     temp['changeBank'] = temp.apply(lambda x: True if x.leftLeadFirmName != x.lagLeftLeadFirmName and x.issuerCusip == x.lagissuerCusip else False, axis =1)
     df = df.merge(temp[['changeBank']], how = 'left', left_index = True, right_index = True)
     
-    y = df[['1SharePrice', '7SharePrice', '30SharePrice', '90SharePrice', '180SharePrice']]
-    X = df.loc[:, ~df.columns.isin(list(y))].drop(columns = ['offeringPricingDate', 'offeringsSubSector', 'issuerCusip', 'issuerName', 'underwriters', 'leftLeadFirmId', 'leftLeadFirmName'])
+    y = df.filter(like = 'Post_')
+    X = df.loc[:, ~df.columns.isin(list(y))].drop(columns = ['offeringPricingDate', 'offeringSubSector', 'issuerCusip', 'issuerName', 'underwriters', 'leftLeadFirmId', 'leftLeadFirmName'])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
+    if normalize == False: 
+        return X_train, X_test, y_train, y_test
     
     numerical_cols = list(X.select_dtypes(include=np.number))
     categorical_cols = [col for col in list(X) if col not in numerical_cols]
