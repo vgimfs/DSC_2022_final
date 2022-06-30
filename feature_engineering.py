@@ -13,8 +13,8 @@ from sklearn.preprocessing import OneHotEncoder
 def feature_engineering(df, normalize = True):
     '''given the cmg data, we want to return '''
     
-    df = df.apply(lambda x: x.fillna(value=df['offeringPrice']))
-    
+    #df = df.apply(lambda x: x.fillna(value=df['offeringPrice']))
+    df = df.fillna(0)
     # how many offerings that have a change from the previous bank
     temp = df.filter(items = ['offeringId', 'issuerCusip', 'offeringPricingDate', 'leftLeadFirmName']).sort_values(by = ['issuerCusip', 'offeringPricingDate'])
     temp['lagLeftLeadFirmName'] = temp['leftLeadFirmName'].shift(1)
@@ -22,7 +22,7 @@ def feature_engineering(df, normalize = True):
     temp['changeBank'] = temp.apply(lambda x: True if x.leftLeadFirmName != x.lagLeftLeadFirmName and x.issuerCusip == x.lagissuerCusip else False, axis =1)
     df = df.merge(temp[['changeBank']], how = 'left', left_index = True, right_index = True)
     
-    y = df.filter(like = 'Post_')
+    y = df.filter(like = 'post')
     X = df.loc[:, ~df.columns.isin(list(y))].drop(columns = ['offeringPricingDate', 'offeringSubSector', 'issuerCusip', 'issuerName', 'underwriters', 'leftLeadFirmId', 'leftLeadFirmName'])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
     if normalize == False: 
