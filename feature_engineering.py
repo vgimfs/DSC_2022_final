@@ -44,7 +44,7 @@ def feature_engineering(df, test_frac = 0.2, normalize = True, random_state = 42
     numerical_cols = list(X.select_dtypes(include=np.number))
     categorical_cols = [col for col in list(X) if col not in numerical_cols]
     numerical_transformer = StandardScaler()
-    categorical_transformer = OneHotEncoder(handle_unknown='ignore')
+    categorical_transformer = OneHotEncoder(drop = 'if_binary')
     preprocessor = ColumnTransformer(
         transformers=[
         ('num', numerical_transformer, numerical_cols),
